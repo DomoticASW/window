@@ -1,5 +1,5 @@
 import httpx
-from domoticASW.domoticASWProtocol import PropertyId
+from domoticASW.DomoticASWProtocol import PropertyId
 from ports import ServerProtocol
 from ports.ServerProtocol import ServerCommunicationProtocol
 
