@@ -2,7 +2,11 @@ from enum import Enum
 import time
 
 class InvalidOperationError(Exception):
-    """Exception raised for invalid operations on the washing machine."""
+    """Invalid operations on the smart window."""
+    pass
+
+class InvalidAngleError(Exception):
+    """Angle not provided or out of range."""
     pass
 
 class WindowPosition(str, Enum):
@@ -45,6 +49,12 @@ class SmartWindow:
         self.position = WindowPosition.OPEN
 
     def tilt(self, angle: float):
+        if angle is None or not (0 <= angle <= 90):
+            raise InvalidAngleError("Angle must be between 0 and 90 degrees.")
+        if angle == 0:
+            self.close()
+        if angle == 90:
+            self.open()
         if self.position == WindowPosition.TILTED and self.angle == angle:
             raise InvalidOperationError("The window is already tilted.")
         self._simulate_motion(angle, 2)
@@ -57,6 +67,8 @@ class SmartWindow:
         self.position = WindowPosition.CLOSED
 
     def status(self):
-        status_string = f"Angle: {self.angle:.1f}° | State: {self.state.value}"
-        print(status_string)
-        return status_string
+        current_status = {
+            "state": self.state,
+            "position": self.position
+        }
+        return current_status
