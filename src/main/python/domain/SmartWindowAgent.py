@@ -24,7 +24,7 @@ class SmartWindowAgent(Thread):
     self.server = server
     self._server_address = None
     self.period_sec = period_sec
-    self._last_state = None
+    self._last_position = None
 
   def stop(self):
     self._stop = True
@@ -34,24 +34,24 @@ class SmartWindowAgent(Thread):
     while not self._stop:
       time.sleep(self.period_sec)
       status = self.smart_window.status()
-      if self._has_meaningful_change(status.state):
-        print(f"AGENT: EVENT!!: {status.state}")
+      if self._has_meaningful_change(status.position):
+        print(f"AGENT: EVENT!!: {status.position}")
         future = asyncio.run_coroutine_threadsafe(self.server.send_event(self._server_address, self._build_event(status.position), self.smart_window.id), self.loop)
         try: 
           future.result()
         except Exception as e:
           print(f"AGENT ERROR! Errore nell'invio dell'evento' {e}")  # Only for debugging purposes
-      for property_name, property_value in status.items():
+      for property_name, property_value in status.model_dump().items():
         future = asyncio.run_coroutine_threadsafe(self.server.update_state(self._server_address, property_name, property_value, self.smart_window.id), self.loop)
         try: 
           future.result()
         except Exception as e:
           print(f"AGENT ERROR! Errore nell'aggiornamento dello stato {e}")
-      self._last_state = status.state
+      self._last_position = status.position
 
-  def _has_meaningful_change(self, current_state: WindowState) -> bool:
-    print(f"AGENT: Checking for meaningful change: Last state: {self._last_state}, Current state: {current_state}")
-    return self._last_state != current_state
+  def _has_meaningful_change(self, current_position: WindowPosition) -> bool:
+    print(f"AGENT: Checking for meaningful change: Last state: {self._last_position}, Current state: {current_position}")
+    return self._last_position != current_position and self._last_position is not None and current_position is not WindowPosition.TILTED
     
   def _build_event(self, position: WindowPosition) -> Event | None:
     if position == WindowPosition.OPEN:

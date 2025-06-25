@@ -2,7 +2,7 @@ from fastapi import Body, Depends, FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from domain.SmartWindowAgent import SmartWindowAgent
 from domain.SmartWindow import InvalidAngleError, InvalidOperationError, SmartWindow
-from domoticASW.DomoticASWProtocol import ActionId, DeviceAction, DevicePropertyWithTypeConstraint, DeviceRegistration, Type, TypeConstraintDoubleRange, TypeConstraintEnum, TypeConstraintNone
+from domoticASW.DomoticASWProtocol import ActionId, DeviceAction, DevicePropertyWithSetter, DevicePropertyWithTypeConstraint, DeviceRegistration, Type, TypeConstraintEnum, TypeConstraintIntRange, TypeConstraintNone
 from ports.ServerProtocol import ServerAddress
 
 def OkResponse(message: str) -> JSONResponse:
@@ -43,7 +43,7 @@ def create_server(smart_window_agent: SmartWindowAgent) -> FastAPI:
                 case "open":
                     window.open()
                 case "tilt":
-                    window.tilt(body.get("angle"))
+                    window.tilt(body.get("input"))
                 case "close":
                     window.close()
                 case _:
@@ -84,11 +84,11 @@ def deviceRegistration(smart_window: SmartWindow) -> DeviceRegistration:
                 value=smart_window.position,
                 typeConstraints=TypeConstraintEnum(values=["Open", "Tilt", "Closed"])
             ),
-            DevicePropertyWithTypeConstraint(
+            DevicePropertyWithSetter(
                 id="angle",
                 name="Angle",
                 value=smart_window.angle,
-                typeConstraints=ActionId("tilt")
+                setterActionId=ActionId("tilt")
             )
         ],
         actions=[
@@ -102,7 +102,7 @@ def deviceRegistration(smart_window: SmartWindow) -> DeviceRegistration:
                 id="tilt",
                 name="Tilt Window",
                 description="Regulates the window angle between 0 and 90 degrees.",
-                inputTypeConstraints=TypeConstraintDoubleRange(min=0.0, max=90.0)
+                inputTypeConstraints=TypeConstraintIntRange(min=0, max=90)
             ),
             DeviceAction(
                 id="close",
