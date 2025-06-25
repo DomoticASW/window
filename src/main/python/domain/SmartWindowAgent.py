@@ -3,7 +3,6 @@ from enum import Enum
 from threading import Thread
 import threading
 import time
-from pydantic import BaseModel
 
 from adapters.ServerCommunicationProtocolHttpAdapter import ServerCommunicationProtocolHttpAdapter
 from domain.SmartWindow import SmartWindow, WindowPosition, WindowState

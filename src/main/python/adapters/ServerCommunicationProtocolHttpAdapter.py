@@ -1,5 +1,4 @@
 import httpx
-from domoticASW.DomoticASWProtocol import PropertyId
 from ports import ServerProtocol
 from ports.ServerProtocol import ServerCommunicationProtocol
 
@@ -10,7 +9,7 @@ class ServerCommunicationProtocolHttpAdapter(ServerCommunicationProtocol):
       await client.post(f"http://{server_address.host}:{server_address.port}/api/devices/{id}/events",
                               json={"event": event.value})
   
-  async def update_state(self, server_address: ServerProtocol.ServerAddress, property_name: PropertyId, property_value, id: str) -> None:
+  async def update_state(self, server_address: ServerProtocol.ServerAddress, property_name: str, property_value, id: str) -> None:
     async with httpx.AsyncClient() as client:
       print(f"CLIENT: Updating state for washing machine value: {property_name} = {property_value}")
       await client.patch(f"http://{server_address.host}:{server_address.port}/api/devices/{id}/properties/{property_name}",
