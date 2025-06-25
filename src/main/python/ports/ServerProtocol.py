@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from domoticASW.DomoticASWProtocol import PropertyId
-
 @dataclass(frozen=True)
 class ServerAddress():
     host: str
@@ -14,5 +12,5 @@ class ServerCommunicationProtocol(ABC):
         pass
 
     @abstractmethod
-    async def update_state(self, server_address: ServerAddress, property_name: PropertyId, property_value, id: str):
+    async def update_state(self, server_address: ServerAddress, property_name, property_value, id: str):
         pass
