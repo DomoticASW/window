@@ -14,7 +14,7 @@ class Event(str, Enum):
 
 class SmartWindowAgent(Thread):
   _server_address: ServerAddress
-  def __init__(self, smart_window: SmartWindow, server: ServerCommunicationProtocolHttpAdapter, period_sec=1):
+  def __init__(self, smart_window: SmartWindow, server: ServerCommunicationProtocolHttpAdapter, server_broadcast_address: ServerAddress, device_port: int, period_sec=1):
     super().__init__(daemon=True)
     self.loop = asyncio.new_event_loop()
     threading.Thread(target=self.loop.run_forever, daemon=True).start()
@@ -22,6 +22,8 @@ class SmartWindowAgent(Thread):
     self.smart_window = smart_window
     self.server = server
     self._server_address = None
+    self.server_broadcast_address = server_broadcast_address
+    self.device_port = device_port
     self.period_sec = period_sec
     self._last_position = None
 
@@ -32,21 +34,28 @@ class SmartWindowAgent(Thread):
     print(f"AGENT: Starting agent for smart window {self.smart_window.id} with period {self.period_sec} seconds")
     while not self._stop:
       time.sleep(self.period_sec)
-      status = self.smart_window.status()
-      if self._has_meaningful_change(status.position):
-        print(f"AGENT: EVENT!!: {status.position}")
-        future = asyncio.run_coroutine_threadsafe(self.server.send_event(self._server_address, self._build_event(status.position), self.smart_window.id), self.loop)
-        try: 
-          future.result()
-        except Exception as e:
-          print(f"AGENT ERROR! Errore nell'invio dell'evento' {e}")  # Only for debugging purposes
-      for property_name, property_value in status.model_dump().items():
-        future = asyncio.run_coroutine_threadsafe(self.server.update_state(self._server_address, property_name, property_value, self.smart_window.id), self.loop)
-        try: 
-          future.result()
-        except Exception as e:
-          print(f"AGENT ERROR! Errore nell'aggiornamento dello stato {e}")
-      self._last_position = status.position
+      if self._server_address is not None:
+        status = self.smart_window.status()
+        if self._has_meaningful_change(status.position):
+          print(f"AGENT: EVENT!!: {status.position}")
+          future = asyncio.run_coroutine_threadsafe(self.server.send_event(self._server_address, self._build_event(status.position), self.smart_window.id), self.loop)
+          try: 
+            future.result()
+          except Exception as e:
+            print(f"AGENT ERROR! Errore nell'invio dell'evento' {e}")  # Only for debugging purposes
+        for property_name, property_value in status.model_dump().items():
+          future = asyncio.run_coroutine_threadsafe(self.server.update_state(self._server_address, property_name, property_value, self.smart_window.id), self.loop)
+          try: 
+            future.result()
+          except Exception as e:
+            print(f"AGENT ERROR! Errore nell'aggiornamento dello stato {e}")
+        self._last_position = status.position
+      else:
+        print(f"AGENT: Sending broadcast announcement")
+        asyncio.run_coroutine_threadsafe(
+              self.server.announce(self.server_broadcast_address, self.device_port, self.smart_window.id, self.smart_window.name), 
+              self.loop
+          )
 
   def _has_meaningful_change(self, current_position: WindowPosition) -> bool:
     print(f"AGENT: Checking for meaningful change: Last state: {self._last_position}, Current state: {current_position}")

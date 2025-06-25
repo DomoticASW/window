@@ -1,3 +1,6 @@
+from dataclasses import asdict
+import json
+import socket
 import httpx
 from ports import ServerProtocol
 from ports.ServerProtocol import ServerCommunicationProtocol
@@ -14,3 +17,18 @@ class ServerCommunicationProtocolHttpAdapter(ServerCommunicationProtocol):
       print(f"CLIENT: Updating state for washing machine value: {property_name} = {property_value}")
       await client.patch(f"http://{server_address.host}:{server_address.port}/api/devices/{id}/properties/{property_name}",
                               json={"value": property_value})
+      
+  async def announce(self, discovery_broadcast_address: ServerProtocol.ServerAddress, device_port: int, smart_window_id: str, smart_window_name: str) -> None:
+    message = ServerProtocol.BroadcastMessage(
+        id=smart_window_id,
+        name=smart_window_name,
+        port=device_port
+    )
+    broadcast_ip = discovery_broadcast_address.host
+    broadcast_port = discovery_broadcast_address.port
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            sock.settimeout(1)
+
+            data = json.dumps(asdict(message)).encode('utf-8')
+            sock.sendto(data, (broadcast_ip, broadcast_port))

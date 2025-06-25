@@ -58,7 +58,6 @@ def create_server(smart_window_agent: SmartWindowAgent) -> FastAPI:
         server_port = body.get("server")
         smart_window_agent.set_server_address(ServerAddress(server_host, server_port))
         print(f"SERVER: Machine agent start to run")
-        smart_window_agent.start()
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content=deviceRegistration(smart_window_agent.smart_window).model_dump()
