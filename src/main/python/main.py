@@ -13,7 +13,9 @@ if __name__ == "__main__":
   server_broadcast_port = os.getenv("SERVER_DISCOVERY_PORT",  "30000")
   server_broadcast_host = os.getenv("SERVER_DISCOVERY_ADDR", "255.255.255.255")
   server_broadcast_address = ServerAddress(server_broadcast_host, int(server_broadcast_port))
-  smart_window = SmartWindow("1", "Smart Window")
+  sw_id = os.getenv("ID", "sm_1")
+  sw_name = os.getenv("NAME", "Smart Window 1")
+  smart_window = SmartWindow(sw_id, sw_name)
   smart_window_agent = SmartWindowAgent(smart_window, server, server_broadcast_address, device_port=int(device_server_port), period_sec=1)
   app = create_server(smart_window_agent)
   if(server_port is not None and server_port != ""):

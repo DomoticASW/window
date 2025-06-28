@@ -54,7 +54,7 @@ def create_server(smart_window_agent: SmartWindowAgent) -> FastAPI:
 
     @app.post("/register")
     def register_device(request: Request, body: dict = Body(...), smart_window_agent: SmartWindowAgent = Depends(get_smart_window_agent)):
-        server_host = "localhost"
+        server_host = request.client.host
         server_port = body.get("server")
         smart_window_agent.set_server_address(ServerAddress(server_host, server_port))
         print(f"SERVER: Machine agent start to run")
