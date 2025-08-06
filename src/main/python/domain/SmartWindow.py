@@ -41,27 +41,31 @@ class SmartWindow:
         self.position = position
 
     def _simulate_motion(self, target_angle, duration):
-        if self.state == WindowState.MOVING:
-            raise InvalidOperationError("The window is already moving.")
         self.state = WindowState.MOVING
         
         steps = 10
         step_duration = duration / steps
-        angle_step = (target_angle - self.angle) / steps
-        
-        for _ in range(steps):
-            self.angle += angle_step
+        initial_angle = self.angle
+        angle_step = (target_angle - initial_angle) / steps
+
+        for i in range(steps):
+            self.angle = initial_angle + angle_step * (i + 1)
             time.sleep(step_duration)
-        
-        self.angle = int(target_angle)  # Ensure exact target at the end
+
+        self.angle = target_angle
         self.state = WindowState.IDLE
 
     def open(self):
         if self.position == WindowPosition.OPEN:
             raise InvalidOperationError("The window is already open.")
+        if self.state == WindowState.MOVING:
+            raise InvalidOperationError("The window is already moving.")
         Thread(target=self._run_tilt_motion, args=(90, WindowPosition.OPEN)).start()
 
+
     def tilt(self, angle: int):
+        if self.state == WindowState.MOVING:
+            raise InvalidOperationError("The window is already moving.")
         if angle is None or not (0 <= angle <= 90):
             raise InvalidAngleError("Angle must be between 0 and 90 degrees.")
         if angle == 0:
@@ -74,13 +78,15 @@ class SmartWindow:
             Thread(target=self._run_tilt_motion, args=(angle, WindowPosition.TILTED)).start()
 
     def close(self):
+        if self.state == WindowState.MOVING:
+            raise InvalidOperationError("The window is already moving.")
         if self.position == WindowPosition.CLOSED:
             raise InvalidOperationError("The window is already closed.")
         Thread(target=self._run_tilt_motion, args=(0, WindowPosition.CLOSED)).start()
 
     def status(self):
         return WindowStatus(
-            angle=self.angle,
+            angle=int(round(self.angle)),
             state=self.state,
             position=self.position
         )

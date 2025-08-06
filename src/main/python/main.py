@@ -1,7 +1,7 @@
 import os
 import uvicorn
 from adapters.ServerCommunicationProtocolHttpAdapter import ServerCommunicationProtocolHttpAdapter
-from domain.SmartWindow import InvalidOperationError, SmartWindow
+from domain.SmartWindow import SmartWindow
 from domain.SmartWindowAgent import SmartWindowAgent
 from adapters.DomoticASWHttpProtocol import create_server
 from ports.ServerProtocol import ServerAddress
