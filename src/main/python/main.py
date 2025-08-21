@@ -8,7 +8,7 @@ from ports.ServerProtocol import ServerAddress
 
 if __name__ == "__main__":
   device_server_port = os.getenv("DEVICE_SERVER_PORT", "8092")
-  server_port = os.getenv("SERVER_PORT", None)
+  server_address = os.getenv("SERVER_ADDRESS", None)
   server = ServerCommunicationProtocolHttpAdapter()
   server_broadcast_port = os.getenv("SERVER_DISCOVERY_PORT",  "30000")
   server_broadcast_host = os.getenv("SERVER_DISCOVERY_ADDR", "255.255.255.255")
@@ -18,10 +18,11 @@ if __name__ == "__main__":
   smart_window = SmartWindow(sw_id, sw_name)
   smart_window_agent = SmartWindowAgent(smart_window, server, server_broadcast_address, device_port=int(device_server_port), period_sec=1)
   app = create_server(smart_window_agent)
-  if(server_port is not None and server_port != ""):
-    print("Server: ", server_port)
+  if(server_address is not None and server_address != ""):
+    host, port = server_address.split(":")
+    print("Server: ", server_address)
     smart_window_agent.set_server_address(
-        ServerAddress("localhost", int(server_port))
+        ServerAddress(host, port)
     )
   smart_window_agent.start()
   uvicorn.run(app, host="0.0.0.0", port=int(device_server_port))
