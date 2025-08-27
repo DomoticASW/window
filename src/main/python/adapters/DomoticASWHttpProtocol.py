@@ -63,6 +63,11 @@ def create_server(smart_window_agent: SmartWindowAgent) -> FastAPI:
             content=deviceRegistration(smart_window_agent.smart_window).model_dump()
         )
     
+    @app.post("/unregister")
+    def register_device(smart_window_agent: SmartWindowAgent = Depends(get_smart_window_agent)):
+        smart_window_agent.remove_server_address()
+        return OkResponse(message="Device unregistered successfully")
+    
     return app
 
 

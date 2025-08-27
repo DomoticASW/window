@@ -14,7 +14,7 @@ class Event(str, Enum):
 
 class SmartWindowAgent(Thread):
   _server_address: ServerAddress
-  def __init__(self, smart_window: SmartWindow, server: ServerCommunicationProtocolHttpAdapter, server_broadcast_address: ServerAddress, device_port: int, period_sec=1):
+  def __init__(self, smart_window: SmartWindow, server: ServerCommunicationProtocolHttpAdapter, server_broadcast_address: ServerAddress, device_port: int, lan_hostname: str, period_sec=1):
     super().__init__(daemon=True)
     self.loop = asyncio.new_event_loop()
     threading.Thread(target=self.loop.run_forever, daemon=True).start()
@@ -26,6 +26,7 @@ class SmartWindowAgent(Thread):
     self.device_port = device_port
     self.period_sec = period_sec
     self._last_position = None
+    self.lan_hostname = lan_hostname
 
   def stop(self):
     self._stop = True
@@ -53,7 +54,7 @@ class SmartWindowAgent(Thread):
       else:
         print(f"AGENT: Sending broadcast announcement")
         asyncio.run_coroutine_threadsafe(
-              self.server.announce(self.server_broadcast_address, self.device_port, self.smart_window.id, self.smart_window.name), 
+              self.server.announce(self.server_broadcast_address, self.device_port, self.smart_window.id, self.smart_window.name, self.lan_hostname), 
               self.loop
           )
 
@@ -71,3 +72,7 @@ class SmartWindowAgent(Thread):
   def set_server_address(self, server_address: ServerAddress):
     print(f"AGENT: Device registered with address: {server_address.host}:{server_address.port}")
     self._server_address = server_address
+
+  def remove_server_address(self):
+    print(f"AGENT: Device unregistered from server")
+    self._server_address = None

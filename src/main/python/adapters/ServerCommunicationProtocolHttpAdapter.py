@@ -18,10 +18,11 @@ class ServerCommunicationProtocolHttpAdapter(ServerCommunicationProtocol):
       await client.patch(f"http://{server_address.host}:{server_address.port}/api/devices/{id}/properties/{property_name}",
                               json={"value": property_value})
       
-  async def announce(self, discovery_broadcast_address: ServerProtocol.ServerAddress, device_port: int, smart_window_id: str, smart_window_name: str) -> None:
+  async def announce(self, discovery_broadcast_address: ServerProtocol.ServerAddress, device_port: int, smart_window_id: str, smart_window_name: str, lan_hostname: str) -> None:
     message = ServerProtocol.BroadcastMessage(
         id=smart_window_id,
         name=smart_window_name,
+        lanHostname = lan_hostname,
         port=device_port
     )
     broadcast_ip = discovery_broadcast_address.host
