@@ -26,4 +26,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/domoticasw-window:latest
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/domoticasw-window:latest
+            ${{ vars.DOCKERHUB_USERNAME }}/domoticasw-window:${{ github.event.release.tag_name }}
